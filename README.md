@@ -21,12 +21,12 @@ Open [http://localhost:8080](http://localhost:8080). Data is stored in `./data`.
 
 Image: `ghcr.io/tyesamson/vanity-hop:latest`
 
-Put Vanity Hop on the same Docker network as Nginx Proxy Manager. Create one if you do not have it yet (`docker network create proxy`), then add `--network proxy` to both start scripts.
+Publishes port 3000 on the host so Nginx Proxy Manager can reach it by the machine’s IP. No shared Docker network is required.
 
 ```bash
 docker run --restart=unless-stopped -d \
   --name vanity-hop \
-  --network proxy \
+  -p 3000:3000 \
   -v /etc/localtime:/etc/localtime:ro \
   -v /mnt/docker/vanity-hop/data:/app/data \
   -e TZ="Pacific/Auckland" \
@@ -51,18 +51,17 @@ If both `PUBLIC_ORIGIN` and `ADMIN_PASSWORD` are set on first boot, onboarding i
 
 This app should sit behind NPM; it does not terminate TLS itself.
 
-1. Put Vanity Hop on the same Docker network as NPM. Do not publish port 8080 to the internet.
-2. DNS for your short domain should point at the NPM host (`A` / `AAAA` / `CNAME`), not at the app container.
-3. In NPM, add a **Proxy Host**:
+1. DNS for your short domain should point at the NPM host (`A` / `AAAA` / `CNAME`).
+2. In NPM, add a **Proxy Host**:
    - Domain: your short host
    - Scheme: `http`
-   - Forward hostname / IP: `vanity-hop` (container name)
+   - Forward hostname / IP: this machine’s IP (on the same Docker host, `172.17.0.1` usually works)
    - Forward port: `3000`
    - Forward Hostname: on
    - SSL: request a certificate, enable **Force SSL**
-4. Set `PUBLIC_ORIGIN` to the public HTTPS origin (exactly as browsers see it) and `HTTPS_ONLY=true`.
+3. Set `PUBLIC_ORIGIN` to the public HTTPS origin (exactly as browsers see it) and `HTTPS_ONLY=true`.
 
-WebSockets are not required. `FORWARDED_ALLOW_IPS=*` is safe here only because the container is not published on the host. Local `python run.py` trusts `127.0.0.1` only.
+WebSockets are not required. Leave port 3000 off any WAN / router forward; NPM already has 80 and 443. Local `python run.py` trusts `127.0.0.1` only.
 
 Login is limited to 8 failures per 15 minutes per IP. Changing the password signs out every other session.
 
