@@ -21,7 +21,7 @@ Open [http://localhost:8080](http://localhost:8080). Data is stored in `./data`.
 
 Image: `ghcr.io/tyesamson/vanity-hop:latest`
 
-Publishes port 3000 on the host so Nginx Proxy Manager can reach it by the machine’s IP. No shared Docker network is required.
+Publishes port 3000 on the host so Nginx Proxy Manager can reach it by the machine’s IP. No shared Docker network is required. The data directory on the host can be empty; the container creates the database on first start.
 
 ```bash
 docker run --restart=unless-stopped -d \
