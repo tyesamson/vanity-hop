@@ -6,6 +6,7 @@ import secrets
 import threading
 import time
 from collections import defaultdict
+from urllib.parse import parse_qs
 
 from fastapi import Request
 from fastapi.responses import PlainTextResponse
@@ -141,6 +142,22 @@ def _replay(body: bytes):
     return receive
 
 
+def _scope_with_body(scope, body: bytes) -> dict:
+    headers = [
+        (key, value)
+        for key, value in scope.get("headers", [])
+        if key.lower() not in {b"content-length", b"transfer-encoding"}
+    ]
+    headers.append((b"content-length", str(len(body)).encode("ascii")))
+    return {**scope, "headers": headers}
+
+
+def _csrf_from_urlencoded(body: bytes) -> str:
+    parsed = parse_qs(body.decode("utf-8", errors="replace"), keep_blank_values=True)
+    values = parsed.get("csrf_token") or []
+    return str(values[0]) if values else ""
+
+
 class CsrfMiddleware:
     def __init__(self, app):
         self.app = app
@@ -151,19 +168,20 @@ class CsrfMiddleware:
             return
 
         body = await _read_body(receive)
-        request = Request(scope, _replay(body))
+        scoped = _scope_with_body(scope, body)
+        request = Request(scoped, _replay(body))
         form = await request.form()
         try:
             token = str(request.session.get("csrf_token") or "")
-            got = str(form.get("csrf_token") or "")
+            got = str(form.get("csrf_token") or "") or _csrf_from_urlencoded(body)
             if not _tokens_match(got, token):
                 response = PlainTextResponse("Invalid CSRF token.", status_code=403)
-                await response(scope, _replay(body), send)
+                await response(scoped, _replay(body), send)
                 return
         finally:
             await form.close()
 
-        await self.app(scope, _replay(body), send)
+        await self.app(scoped, _replay(body), send)
 
 
 def forwarded_allow_ips() -> str:

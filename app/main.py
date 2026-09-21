@@ -117,7 +117,9 @@ app.add_middleware(
     secret_key=_load_session_secret(),
     session_cookie="vh_session",
     same_site="lax",
-    https_only=_https_only(),
+    # NPM (and :3000) speak HTTP to this process. A Secure cookie would never
+    # be stored, and every POST would fail CSRF.
+    https_only=False,
     max_age=60 * 60 * 24 * 30,
 )
 
