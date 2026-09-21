@@ -285,6 +285,10 @@ button[type="submit"]:not(.danger):not(.text):not(.ghost):not(.danger-btn) {
   overflow-wrap: anywhere;
 }
 
+.copy.copied {
+  color: var(--ok);
+}
+
 .ledger header {
   display: flex;
   justify-content: space-between;

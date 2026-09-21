@@ -13,19 +13,66 @@ function updatePreview() {
 
 slugInput?.addEventListener("input", updatePreview);
 
+function markCopied(button) {
+  if (!button) return;
+  const previous = button.getAttribute("data-copy-label") || button.textContent || "Copy";
+  button.setAttribute("data-copy-label", previous);
+  button.textContent = "Copied";
+  button.classList.add("copied");
+  window.setTimeout(() => {
+    button.textContent = previous;
+    button.classList.remove("copied");
+  }, 1600);
+}
+
+async function copyValue(button, value) {
+  if (!value) return false;
+  try {
+    await navigator.clipboard.writeText(value);
+    markCopied(button);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 document.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-copy]");
   if (!button) return;
   const value = button.getAttribute("data-copy");
-  try {
-    await navigator.clipboard.writeText(value);
-    const previous = button.textContent;
-    button.textContent = "Copied";
-    window.setTimeout(() => {
-      button.textContent = previous;
-    }, 1400);
-  } catch {
+  if (!(await copyValue(button, value))) {
     window.prompt("Copy this URL", value);
+  }
+});
+
+const autoCopy = document.querySelector("[data-copy-on-load]");
+if (autoCopy) {
+  const url = autoCopy.getAttribute("data-copy") || "";
+  if (sessionStorage.getItem("vh-copied") === url) {
+    markCopied(autoCopy);
+  }
+  sessionStorage.removeItem("vh-copied");
+}
+
+document.getElementById("create-form")?.addEventListener("submit", async (event) => {
+  const form = event.target;
+  event.preventDefault();
+  try {
+    const response = await fetch(form.action, { method: "post", body: new FormData(form) });
+    if (!response.ok) {
+      form.submit();
+      return;
+    }
+    const next = new URL(response.url);
+    const slug = next.searchParams.get("created");
+    if (slug && origin) {
+      const url = `${origin}/${slug}`;
+      sessionStorage.setItem("vh-copied", url);
+      await copyValue(null, url);
+    }
+    window.location.assign(`${next.pathname}${next.search}`);
+  } catch {
+    form.submit();
   }
 });
 
