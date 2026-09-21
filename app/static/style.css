@@ -23,6 +23,10 @@ html, body {
   font-family: var(--ui);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-size: 15px;
   line-height: 1.45;
@@ -325,11 +329,17 @@ button[type="submit"]:not(.danger):not(.text):not(.ghost):not(.danger-btn) {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 8px 12px;
 }
 
 .hop.fresh { border-color: var(--accent); }
-.hop .check { padding-top: 10px; }
+.hop > .check {
+  min-height: 2.5rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.hop > .check input { margin: 0; }
 
 summary {
   list-style: none;
@@ -338,6 +348,7 @@ summary {
   grid-template-columns: 1.2fr 1.4fr auto;
   gap: 12px;
   align-items: center;
+  min-height: 2.5rem;
 }
 
 summary::-webkit-details-marker { display: none; }
