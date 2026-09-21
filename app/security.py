@@ -158,6 +158,40 @@ def _csrf_from_urlencoded(body: bytes) -> str:
     return str(values[0]) if values else ""
 
 
+def _header(scope, name: bytes) -> str:
+    for key, value in scope.get("headers", []):
+        if key.lower() == name:
+            return value.decode("latin-1")
+    return ""
+
+
+def _csrf_from_multipart(body: bytes) -> str:
+    marker = b'name="csrf_token"'
+    start = body.find(marker)
+    if start < 0:
+        start = body.find(b"name=csrf_token")
+    if start < 0:
+        return ""
+    rest = body[start:]
+    sep = rest.find(b"\r\n\r\n")
+    if sep < 0:
+        return ""
+    value = rest[sep + 4 :]
+    end = value.find(b"\r\n")
+    if end < 0:
+        return ""
+    return value[:end].decode("utf-8", errors="replace")
+
+
+def _csrf_from_body(content_type: str, body: bytes) -> str:
+    kind = content_type.split(";")[0].strip().lower()
+    if kind == "application/x-www-form-urlencoded":
+        return _csrf_from_urlencoded(body)
+    if kind == "multipart/form-data":
+        return _csrf_from_multipart(body)
+    return ""
+
+
 class CsrfMiddleware:
     def __init__(self, app):
         self.app = app
@@ -169,17 +203,13 @@ class CsrfMiddleware:
 
         body = await _read_body(receive)
         scoped = _scope_with_body(scope, body)
-        request = Request(scoped, _replay(body))
-        form = await request.form()
-        try:
-            token = str(request.session.get("csrf_token") or "")
-            got = str(form.get("csrf_token") or "") or _csrf_from_urlencoded(body)
-            if not _tokens_match(got, token):
-                response = PlainTextResponse("Invalid CSRF token.", status_code=403)
-                await response(scoped, _replay(body), send)
-                return
-        finally:
-            await form.close()
+        request = Request(scoped)
+        token = str(request.session.get("csrf_token") or "")
+        got = _csrf_from_body(_header(scope, b"content-type"), body)
+        if not _tokens_match(got, token):
+            response = PlainTextResponse("Invalid CSRF token.", status_code=403)
+            await response(scoped, _replay(body), send)
+            return
 
         await self.app(scoped, _replay(body), send)
 

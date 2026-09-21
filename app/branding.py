@@ -7,6 +7,7 @@ from typing import Any
 
 from app import db
 from app.security import sniff_image_extension
+from app.util import data_dir, normalize_hex_color
 
 DEFAULT_BRANDING: dict[str, Any] = {
     "name": "Vanity Hop",
