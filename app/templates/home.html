@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="composer">
+  <form method="post" action="/links" class="create" id="create-form">
+    {% include "csrf.html" %}
+    <label class="grow">
+      <span>URL</span>
+      <input type="url" name="destination" placeholder="https://" required autofocus>
+    </label>
+    <label class="slug-field">
+      <span>Slug <em>(optional)</em></span>
+      <span class="slug-input">
+        {% if slug_prefix %}<span class="prefix" id="prefix-display">{{ slug_prefix }}</span>{% endif %}
+        <input type="text" name="slug" id="slug-input" placeholder="xxxx" maxlength="64" autocomplete="off" spellcheck="false">
+      </span>
+    </label>
+    <button type="submit">Create</button>
+  </form>
+  <p class="preview" id="slug-preview" data-origin="{{ public_origin }}" data-prefix="{{ slug_prefix }}">
+    {% if public_origin %}{{ public_origin }}/{% if slug_prefix %}{{ slug_prefix }}{% endif %}xxxx{% endif %}
+  </p>
+</section>
+
+{% if created %}
+<section class="result" id="created">
+  <p class="short">
+    <a href="/{{ created.slug }}">{{ public_origin }}/{{ created.slug }}</a>
+  </p>
+  <button type="button" class="ghost copy" data-copy="{{ public_origin }}/{{ created.slug }}">Copy</button>
+</section>
+{% endif %}
+
+<section class="ledger">
+  <header>
+    <h1>Links</h1>
+    <p>{{ links|length }}</p>
+  </header>
+
+  {% if not links %}
+  <p class="empty">No links yet.</p>
+  {% else %}
+  <form method="post" action="/links/bulk-delete" id="bulk-form">
+    {% include "csrf.html" %}
+    <div class="toolbar">
+      <label class="check">
+        <input type="checkbox" id="select-all">
+        <span>Select all</span>
+      </label>
+      <input type="search" id="link-filter" placeholder="Filter">
+      <button type="submit" class="ghost danger-btn" id="bulk-delete" disabled>Delete selected</button>
+    </div>
+
+    <ul class="link-list">
+      {% for link in links %}
+      <li class="hop{% if created and created.id == link.id %} fresh{% endif %}" data-filter="{{ link.slug }} {{ link.destination }}">
+        <label class="check">
+          <input type="checkbox" name="ids" value="{{ link.id }}" class="row-check">
+        </label>
+        <details>
+          <summary>
+            <span class="branded">{{ public_host }}/{{ link.slug }}</span>
+            <span class="dest">{{ link.destination }}</span>
+            <span class="when">{{ link.created_at|when }}</span>
+          </summary>
+          <div class="detail">
+            <div class="edit">
+              <label>
+                <span>Slug</span>
+                <input type="text" name="slug" value="{{ link.slug }}" form="edit-{{ link.id }}" required maxlength="64">
+              </label>
+              <label class="grow">
+                <span>Destination</span>
+                <input type="url" name="destination" value="{{ link.destination }}" form="edit-{{ link.id }}" required>
+              </label>
+              <button type="submit" form="edit-{{ link.id }}">Save</button>
+            </div>
+            <div class="row-actions">
+              <button type="button" class="ghost copy" data-copy="{{ public_origin }}/{{ link.slug }}">Copy</button>
+              <button type="submit" form="delete-{{ link.id }}" class="danger">Delete</button>
+            </div>
+          </div>
+        </details>
+      </li>
+      {% endfor %}
+    </ul>
+  </form>
+
+  {% for link in links %}
+  <form id="edit-{{ link.id }}" method="post" action="/links/{{ link.id }}/update" hidden>
+    {% include "csrf.html" %}
+  </form>
+  <form id="delete-{{ link.id }}" method="post" action="/links/{{ link.id }}/delete" hidden data-confirm="Delete this link?">
+    {% include "csrf.html" %}
+  </form>
+  {% endfor %}
+
+  <form method="post" action="/links/delete-older" class="older" data-confirm="Delete all links older than the period you chose?">
+    {% include "csrf.html" %}
+    <span>Delete older than</span>
+    <input type="number" name="amount" min="1" value="30" required>
+    <select name="unit">
+      <option value="hours">hours</option>
+      <option value="days" selected>days</option>
+      <option value="weeks">weeks</option>
+      <option value="months">months</option>
+      <option value="years">years</option>
+    </select>
+    <button type="submit" class="ghost">Delete</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

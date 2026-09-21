@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Using it · {{ brand.name }}{% endblock %}
+{% block content %}
+{% include "steps.html" %}
+<section class="sheet">
+  <h1>How it works</h1>
+  <p class="lede">Paste a long URL and create a short one on <code>{{ public_host }}</code>. Visits go straight to the destination. Nothing is counted.</p>
+
+  <h2>Creating a link</h2>
+  <p class="lede">Leave slug empty for four random characters, like <code>{{ public_host }}/a3kx</code>. Type a slug if you want a path of your own, like <code>{{ public_host }}/launch</code>.</p>
+
+  <h2>Slug prefix</h2>
+  <p class="lede">Optional, off by default. In Settings you can add a prefix to every new link, for example <code>suite_</code> → <code>{{ public_host }}/suite_a3kx</code>. Changing the prefix later does not rewrite existing links.</p>
+
+  <h2>Managing links</h2>
+  <p class="lede">Open a row to edit or copy. Tick links and delete the selection, or delete everything older than a period you choose.</p>
+
+  <form method="post" action="/setup/using">
+    {% include "csrf.html" %}
+    <button type="submit">Go to links</button>
+  </form>
+</section>
+{% endblock %}

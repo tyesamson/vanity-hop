@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Domain · {{ brand.name }}{% endblock %}
+{% block content %}
+{% include "steps.html" %}
+<section class="sheet">
+  <h1>Set your domain</h1>
+  <p class="lede">The host copied onto every short link. HTTPS is added for you.</p>
+  <form method="post" action="/setup/domain" class="stack">
+    {% include "csrf.html" %}
+    <label>
+      <span>Domain</span>
+      <span class="slug-input origin-input">
+        <span class="prefix">https://</span>
+        <input type="text" name="public_origin" value="{{ preset_host }}" placeholder="links.example.com" required autocomplete="off" autofocus spellcheck="false">
+      </span>
+    </label>
+    <button type="submit">Continue</button>
+  </form>
+</section>
+{% endblock %}

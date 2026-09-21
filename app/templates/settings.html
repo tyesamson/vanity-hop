@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ brand.name }}{% endblock %}
+{% block content %}
+<div class="panel-stack">
+  <h1 class="page-title">Settings</h1>
+
+  <section class="sheet">
+    <h2>Domain</h2>
+    <form method="post" action="/settings/domain" class="stack">
+      {% include "csrf.html" %}
+      <label>
+        <span>Public origin</span>
+        <span class="slug-input origin-input">
+          <span class="prefix">https://</span>
+          <input type="text" name="public_origin" value="{{ public_host }}" placeholder="links.example.com" required spellcheck="false">
+        </span>
+      </label>
+      <button type="submit">Save domain</button>
+    </form>
+  </section>
+
+  <section class="sheet">
+    <h2>Slug prefix</h2>
+    <p class="lede">Optional. Off by default. When on, new links are <code>{{ public_host }}/{{ slug_prefix_value or "suite_" }}xxxx</code>. Existing links keep their current slugs.</p>
+    <form method="post" action="/settings/prefix" class="stack">
+      {% include "csrf.html" %}
+      <label class="check">
+        <input type="checkbox" name="slug_prefix_enabled" value="1" {% if slug_prefix_enabled %}checked{% endif %}>
+        <span>Use a prefix on new links</span>
+      </label>
+      <label>
+        <span>Prefix</span>
+        <input type="text" name="slug_prefix" value="{{ slug_prefix_value }}" placeholder="suite_" maxlength="32" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="submit">Save prefix</button>
+    </form>
+  </section>
+
+  <section class="sheet">
+    <h2>Branding</h2>
+    <p class="lede">Replaces the default name, colours, logo, favicon, and background. There is no light/dark toggle — set the colours you want.</p>
+    <form method="post" action="/settings/branding" enctype="multipart/form-data" class="branding">
+      {% include "csrf.html" %}
+      <label>
+        <span>Name</span>
+        <input type="text" name="name" value="{{ brand.name }}" maxlength="80">
+      </label>
+
+      <div class="color-grid">
+        <label><span>Background</span><input type="color" name="bg" value="{{ brand.bg }}"></label>
+        <label><span>Surface</span><input type="color" name="surface" value="{{ brand.surface }}"></label>
+        <label><span>Text</span><input type="color" name="ink" value="{{ brand.ink }}"></label>
+        <label><span>Muted text</span><input type="color" name="muted" value="{{ brand.muted }}"></label>
+        <label><span>Borders</span><input type="color" name="line" value="{{ brand.line }}"></label>
+        <label><span>Accent</span><input type="color" name="accent" value="{{ brand.accent }}"></label>
+        <label><span>Button text</span><input type="color" name="button_text" value="{{ brand.button_text }}"></label>
+      </div>
+
+      <label>
+        <span>Logo</span>
+        {% if brand.logo %}<img class="preview-img" src="{{ brand.logo }}" alt="">{% endif %}
+        <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon">
+        {% if brand.logo %}
+        <span class="check"><input type="checkbox" name="remove_logo" value="1"> Remove logo</span>
+        {% endif %}
+      </label>
+
+      <label>
+        <span>Favicon</span>
+        {% if brand.favicon %}<img class="preview-img small" src="{{ brand.favicon }}" alt="">{% endif %}
+        <input type="file" name="favicon" accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon">
+        {% if brand.favicon %}
+        <span class="check"><input type="checkbox" name="remove_favicon" value="1"> Remove favicon</span>
+        {% endif %}
+      </label>
+
+      <label>
+        <span>Background image</span>
+        {% if brand.background_image %}<img class="preview-img wide" src="{{ brand.background_image }}" alt="">{% endif %}
+        <input type="file" name="background_image" accept="image/png,image/jpeg,image/webp,image/gif">
+        {% if brand.background_image %}
+        <span class="check"><input type="checkbox" name="remove_background" value="1"> Remove background image</span>
+        {% endif %}
+      </label>
+
+      <label>
+        <span>Background image strength</span>
+        <input type="number" name="background_opacity" min="0" max="1" step="0.05" value="{{ brand.background_opacity }}">
+      </label>
+
+      <div class="row-actions">
+        <button type="submit">Save branding</button>
+      </div>
+    </form>
+    <form method="post" action="/settings/branding/reset" data-confirm="Reset all branding to Vanity Hop defaults?">
+      {% include "csrf.html" %}
+      <button type="submit" class="danger">Reset branding</button>
+    </form>
+  </section>
+
+  <section class="sheet">
+    <h2>Password</h2>
+    <form method="post" action="/settings/password" class="stack">
+      {% include "csrf.html" %}
+      <label>
+        <span>New password</span>
+        <input type="password" name="password" required minlength="8" autocomplete="new-password">
+      </label>
+      <label>
+        <span>Confirm password</span>
+        <input type="password" name="password_confirm" required minlength="8" autocomplete="new-password">
+      </label>
+      <button type="submit">Save password</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

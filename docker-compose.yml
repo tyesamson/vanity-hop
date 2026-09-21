@@ -1,0 +1,21 @@
+services:
+  vanity-hop:
+    build: .
+    image: ghcr.io/tyesamson/vanity-hop:latest
+    expose:
+      - "3000"
+    environment:
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      HTTPS_ONLY: ${HTTPS_ONLY:-}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}
+    volumes:
+      - vanity-data:/app/data
+    restart: unless-stopped
+    # Do not publish 8080 on the host. Reach this service from Nginx Proxy Manager
+    # on the Docker network at vanity-hop:3000.
+    # For a local try without a proxy: ports: ["8080:3000"]
+
+volumes:
+  vanity-data:

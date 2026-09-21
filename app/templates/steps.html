@@ -1,0 +1,11 @@
+{% set total = step_count|default(4) %}
+{% set pct = ((step / total) * 100)|round|int %}
+<div class="progress" role="progressbar" aria-valuemin="1" aria-valuemax="{{ total }}" aria-valuenow="{{ step }}" aria-label="Setup step {{ step }} of {{ total }}">
+  <div class="progress-meta">
+    <span>Step {{ step }} of {{ total }}</span>
+    <span>{% if step == 1 %}Password{% elif step == 2 %}Domain{% elif step == 3 %}DNS{% else %}Using it{% endif %}</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" style="width: {{ pct }}%"></div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{% if needs_setup %}Set up · {{ brand.name }}{% else %}Log in · {{ brand.name }}{% endif %}{% endblock %}
+{% block content %}
+<section class="sheet">
+  {% if brand.logo %}
+  <img class="hero-logo" src="{{ brand.logo }}" alt="{{ brand.name }}">
+  {% endif %}
+  {% if needs_setup %}
+  <h1>Set up</h1>
+  <p class="lede">Create a password, then point your domain at this server.</p>
+  <a class="btn" href="/setup/password">Begin setup</a>
+  {% else %}
+  <h1>Log in</h1>
+  <form method="post" action="/login" class="stack">
+    {% include "csrf.html" %}
+    <label>
+      <span>Password</span>
+      <input type="password" name="password" required autofocus autocomplete="current-password">
+    </label>
+    <button type="submit">Continue</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

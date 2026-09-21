@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ brand.name }}{% endblock %}</title>
+  {% if brand.favicon %}
+  <link rel="icon" href="{{ brand.favicon }}">
+  {% else %}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  {% endif %}
+  <link rel="stylesheet" href="/static/style.css">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <style>
+    :root {
+      {{ brand_css|safe }}
+    }
+  </style>
+</head>
+<body class="{% if brand.background_image %}has-bg{% endif %}">
+  <div class="frame">
+    <header class="top">
+      <a class="mark" href="/">
+        {% if brand.logo %}
+        <img src="{{ brand.logo }}" alt="{{ brand.name }}">
+        {% else %}
+        {{ brand.name }}
+        {% endif %}
+      </a>
+      {% if public_host and onboarding_complete %}<span class="host">{{ public_host }}</span>{% endif %}
+      {% if logged_in %}
+      <nav>
+        {% if onboarding_complete %}<a href="/settings">Settings</a>{% endif %}
+        <form method="post" action="/logout">
+          {% include "csrf.html" %}
+          <button type="submit" class="text">Log out</button>
+        </form>
+      </nav>
+      {% endif %}
+    </header>
+
+    {% if flash %}
+    <p class="flash {{ flash.kind }}" role="status">{{ flash.message }}</p>
+    {% endif %}
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

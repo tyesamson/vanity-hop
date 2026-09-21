@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}DNS · {{ brand.name }}{% endblock %}
+{% block content %}
+{% include "steps.html" %}
+<section class="sheet">
+  <h1>Point DNS at this server</h1>
+  <p class="lede">Do this at whichever registrar or DNS host holds <code>{{ dns_host }}</code>. The labels vary; the records do not.</p>
+
+  <ol class="guide">
+    <li>Sign in to the place that manages DNS for this domain (registrar, Cloudflare, your host, etc.).</li>
+    <li>Open DNS records for the zone. For <code>{{ dns_host }}</code> that is usually the parent domain.</li>
+    <li>
+      Add a record for the host you want:
+      <ul>
+        <li><strong>Subdomain</strong> (for example <code>links.example.com</code>): <code>CNAME</code> for <code>links</code> to the hostname of the machine running your reverse proxy, or an <code>A</code> record to its IPv4 address (and <code>AAAA</code> for IPv6).</li>
+        <li><strong>Apex / root domain</strong> (for example <code>example.com</code>): <code>A</code> / <code>AAAA</code>, or <code>ALIAS</code> / <code>ANAME</code> if the DNS host supports it. CNAME on the apex is often invalid.</li>
+      </ul>
+    </li>
+    <li>Wait for DNS. It can be seconds or a few hours.</li>
+    <li>
+      Put HTTPS in front of this app so the public origin is exactly <code>{{ public_origin }}</code>.
+      If you use Nginx Proxy Manager: add a Proxy Host for <code>{{ dns_host }}</code> pointing at this container (scheme HTTP, forward hostname on), then request an SSL certificate and enable Force SSL.
+    </li>
+  </ol>
+
+  {% if lookup %}
+  <p class="flash ok">{{ dns_host }} resolves to: {{ lookup|join(", ") }}. Confirm one of those addresses is this server or your reverse proxy.</p>
+  {% endif %}
+  {% if lookup_error %}
+  <p class="flash error">{{ lookup_error }}</p>
+  {% endif %}
+
+  <div class="row-actions">
+    <form method="post" action="/setup/dns">
+      {% include "csrf.html" %}
+      <input type="hidden" name="action" value="check">
+      <button type="submit" class="ghost">Check DNS</button>
+    </form>
+    <form method="post" action="/setup/dns">
+      {% include "csrf.html" %}
+      <input type="hidden" name="action" value="continue">
+      <button type="submit">Continue</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
