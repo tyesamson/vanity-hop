@@ -1,11 +1,11 @@
 :root {
   --bg: #0b0c0e;
   --surface: #141518;
-  --ink: #f2f2f0;
-  --muted: #8b8d93;
+  --ink: #e6e6dc;
+  --muted: #aaaaa4;
   --line: #2a2b32;
-  --accent: #8ab4ff;
-  --button-text: #0b0c0e;
+  --accent: #a62525;
+  --button-text: #e6e6dc;
   --error: #ff8b7b;
   --ok: #8ee0b1;
   --bg-image-opacity: 0.28;
